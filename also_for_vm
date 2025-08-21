@@ -41,6 +41,26 @@
 "    // Add more methods as needed" & _
 "}" & _
 "'@"
+
+
+"    $bcryptCode = @'" & _
+"using System;" & _
+"using System.Runtime.InteropServices;" & _
+"" & _
+"public class BCrypt {" & _
+"    [DllImport(\"bcrypt.dll\")]" & _
+"    public static extern uint BCryptOpenAlgorithmProvider(out IntPtr phAlgorithm, string pszAlgId, string pszImplementation, uint dwFlags);" & _
+"    " & _
+"    [DllImport(\"bcrypt.dll\")]" & _
+"    public static extern uint BCryptCloseAlgorithmProvider(IntPtr hAlgorithm, uint dwFlags);" & _
+"    " & _
+"    public const string BCRYPT_AES_ALGORITHM = \"AES\";" & _
+"    public const uint STATUS_SUCCESS = 0x00000000;" & _
+"}" & _
+"'@" & _
+"    " & _
+"    Add-Type -TypeDefinition $bcryptCode -Language CSharp" & _
+"    Write-Host 'BCrypt class loaded successfully'" & _
 "# Create AES-GCM object using BCrypt" & _
 "try {" & _
 "    $hAlg = [IntPtr]::Zero" & _

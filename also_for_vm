@@ -1,0 +1,29 @@
+"# Test AES-GCM creation" & _
+"try {" & _
+"    $aes = [System.Security.Cryptography.AesGcm]::new($masterKey)" & _
+"    Write-Host '✓ AES-GCM initialized successfully'" & _
+"} catch {" & _
+"    Write-Host '✗ ERROR creating AES-GCM: $($_.Exception.Message)'" & _
+"}" & _
+"" & _
+"# Verify tag extraction" & _
+"$ciphertext = $encryptedBytes[15..($encryptedBytes.Length-1)]" & _
+"$tag = $ciphertext[($ciphertext.Length-16)..($ciphertext.Length-1)]" & _
+"$ciphertextOnly = $ciphertext[0..($ciphertext.Length-17)]" & _
+"" & _
+"Write-Host 'Tag length: $($tag.Length)'  # Should be 16" & _
+"Write-Host 'Actual ciphertext length (without tag): $($ciphertextOnly.Length)'" & _
+"" & _
+"# Create plaintext buffer" & _
+"$plaintext = New-Object byte[] ($ciphertextOnly.Length)" & _
+"Write-Host 'Plaintext buffer size: $($plaintext.Length)'" & _
+"" & _
+"# Try decryption" & _
+"try {" & _
+"    $aes.Decrypt($nonce, $ciphertextOnly, $tag, $plaintext)" & _
+"    $cookieValue = [System.Text.Encoding]::UTF8.GetString($plaintext)" & _
+"    Write-Host '✓ Decryption successful!'" & _
+"    Write-Host 'Cookie value: $cookieValue'" & _
+"} catch {" & _
+"    Write-Host '✗ Decryption failed: $($_.Exception.Message)'" & _
+"}"

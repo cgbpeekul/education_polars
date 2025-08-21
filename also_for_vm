@@ -27,3 +27,47 @@
 "} catch {" & _
 "    Write-Host '✗ Decryption failed: $($_.Exception.Message)'" & _
 "}"
+
+
+"# Load required assemblies" & _
+"Add-Type -TypeDefinition @'" & _
+"using System;" & _
+"using System.Runtime.InteropServices;" & _
+"public class BCrypt {" & _
+"    [DllImport(\"bcrypt.dll\")]" & _
+"    public static extern int BCryptOpenAlgorithmProvider(out IntPtr hAlgorithm, string pszAlgId, string pszImplementation, int dwFlags);" & _
+"    [DllImport(\"bcrypt.dll\")]" & _
+"    public static extern int BCryptCloseAlgorithmProvider(IntPtr hAlgorithm, int dwFlags);" & _
+"    // Add more methods as needed" & _
+"}" & _
+"'@"
+"# Create AES-GCM object using BCrypt" & _
+"try {" & _
+"    $hAlg = [IntPtr]::Zero" & _
+"    $result = [BCrypt]::BCryptOpenAlgorithmProvider([ref]$hAlg, [BCrypt]::BCRYPT_AES_ALGORITHM, $null, 0)" & _
+"    " & _
+"    if ($result -eq [BCrypt]::STATUS_SUCCESS) {" & _
+"        # Set GCM mode" & _
+"        $gcmMode = [System.Text.Encoding]::Unicode.GetBytes([BCrypt]::BCRYPT_CHAIN_MODE_GCM)" & _
+"        $result = [BCrypt]::BCryptSetProperty($hAlg, [BCrypt]::BCRYPT_CHAINING_MODE, $gcmMode, $gcmMode.Length, 0)" & _
+"        " & _
+"        if ($result -eq [BCrypt]::STATUS_SUCCESS) {" & _
+"            # Generate key" & _
+"            $hKey = [IntPtr]::Zero" & _
+"            $result = [BCrypt]::BCryptGenerateSymmetricKey($hAlg, [ref]$hKey, $null, 0, $masterKey, $masterKey.Length, 0)" & _
+"            " & _
+"            if ($result -eq [BCrypt]::STATUS_SUCCESS) {" & _
+"                $aes = @{ Algorithm = $hAlg; Key = $hKey }" & _
+"                Write-Host '✓ AES-GCM initialized successfully'" & _
+"            } else {" & _
+"                Write-Host '✗ Key generation failed'" & _
+"            }" & _
+"        } else {" & _
+"            Write-Host '✗ GCM mode failed'" & _
+"        }" & _
+"    } else {" & _
+"        Write-Host '✗ Algorithm provider failed'" & _
+"    }" & _
+"} catch {" & _
+"    Write-Host '✗ ERROR creating AES-GCM: $($_.Exception.Message)'" & _
+"}"

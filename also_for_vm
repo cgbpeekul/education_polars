@@ -91,3 +91,27 @@
 "} catch {" & _
 "    Write-Host '✗ ERROR creating AES-GCM: $($_.Exception.Message)'" & _
 "}"
+$dpapiCode = @"
+public static class DpapiHelper
+{
+    public static byte[] Protect(string plainText)
+    {
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(plainText);
+        return System.Security.Cryptography.ProtectedData.Protect(
+            data, 
+            null, 
+            System.Security.Cryptography.DataProtectionScope.CurrentUser
+        );
+    }
+
+    public static string Unprotect(byte[] encrypted)
+    {
+        byte[] data = System.Security.Cryptography.ProtectedData.Unprotect(
+            encrypted, 
+            null, 
+            System.Security.Cryptography.DataProtectionScope.CurrentUser
+        );
+        return System.Text.Encoding.UTF8.GetString(data);
+    }
+}
+"@

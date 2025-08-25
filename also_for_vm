@@ -134,3 +134,25 @@ foreach ($w in $webviews) {
 }
 
 Write-Host "All WebView2 processes and parents attempted to be terminated."
+
+
+
+
+
+# encrypted bytes length
+$encryptedBytes.Length  # should print 295
+
+# Try both scopes
+foreach ($scope in [System.Security.Cryptography.DataProtectionScope]::GetValues([System.Security.Cryptography.DataProtectionScope])) {
+    try {
+        $plaintextBytes = [System.Security.Cryptography.ProtectedData]::Unprotect(
+            $encryptedBytes,
+            $null,
+            $scope
+        )
+        $text = [System.Text.Encoding]::UTF8.GetString($plaintextBytes)
+        Write-Host "✅ Success with scope $scope: $text"
+    } catch [System.Security.Cryptography.CryptographicException] {
+        Write-Host "❌ Failed with scope $scope"
+    }
+}
